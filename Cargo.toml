@@ -1,0 +1,15 @@
+[package]
+name = "range_proof"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+spartan = "0.4.1"
+curve25519-dalek = {version = "3.2.0", features = ["serde", "simd_backend"]}
+merlin = "3.0.0"
+rand = "0.7.3"
+
+r1cs = "0.4.7"
+#r1cs-zkinterface = "0.1.2"
