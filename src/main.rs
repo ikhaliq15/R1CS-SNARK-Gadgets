@@ -25,7 +25,7 @@ fn main() {
         assignment_vars,
         assignment_inputs,
     ) = produce_range_r1cs(
-        Scalar::from(pow(2, 23  ) + 325013u32),
+        Scalar::from(pow(2, 23) + 325013u32),
         Scalar::from(pow(2, 16) as u32),
         Scalar::from(pow(2, 25) as u32),
         100
