@@ -15,7 +15,6 @@ use r1cs::num::pow;
 use crate::range_proof::produce_range_r1cs;
 
 fn main() {
-    // produce a tiny instance
     let (
         num_cons,
         num_vars,
@@ -25,7 +24,7 @@ fn main() {
         assignment_vars,
         assignment_inputs,
     ) = produce_range_r1cs(
-        Scalar::from(pow(2, 23) + 325013u32),
+        Scalar::from(pow(2, 23) as u32),
         Scalar::from(pow(2, 16) as u32),
         Scalar::from(pow(2, 25) as u32),
         100
@@ -54,9 +53,11 @@ fn main() {
 
     // verify the proof of satisfiability
     let mut verifier_transcript = Transcript::new(b"snark_example");
-    assert!(proof
-        .verify(&comm, &custom_assignment_inputs, &mut verifier_transcript, &gens)
-        .is_ok());
+    assert!(
+        proof
+            .verify(&comm, &custom_assignment_inputs, &mut verifier_transcript, &gens)
+            .is_ok()
+    );
 
     println!("proof verification successful!");
 }
