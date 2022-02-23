@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-pub mod r1cs_helpers;
+pub mod r1cs;
 pub mod bit_helpers;
 pub mod range_proof;
 
@@ -26,7 +26,7 @@ fn main() {
         assignment_inputs,
         _
     ) = produce_range_r1cs(
-        get_pow_2(20),
+        get_pow_2(18),
         get_pow_2(16),
         get_pow_2(25),
     );
