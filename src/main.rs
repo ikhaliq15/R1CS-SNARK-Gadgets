@@ -3,6 +3,7 @@
 pub mod r1cs;
 pub mod bit_helpers;
 pub mod range_proof;
+pub mod set_membership;
 
 extern crate curve25519_dalek;
 extern crate libspartan;

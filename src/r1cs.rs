@@ -53,6 +53,8 @@ impl R1CS {
         self.constraint_count += 1;
 
         // TODO: add input constraints so that input variables equal
+        //       although this is not necessary yet because we have not made
+        //       any instances with inputs
 
         let num_vars = self.variables.len();
         let num_inputs = 0;
@@ -278,5 +280,45 @@ impl R1CS {
         let helper_var_val: Scalar = (a_val - x_val) * (x_val - b_val);
         self.add_witness_var_assignment(&*helper_var, helper_var_val);
         self.generate_witness_twos_complement_decomposition(helper_var, helper_var_val, 202);
+    }
+
+    /* Add constraints to verify X \in SET where X, A, and B are 100 bit numbers. */
+    pub fn new_set_membership_constraint(&mut self, x: &str, set: Vec<&str>) {
+        // prove all toggles are either 0 or 1
+        for i in 0..set.len() {
+            self.new_is_bit_constraint(&*format!("{}_toggle[{}]", x, i));
+        }
+
+        // prove that the sum of all toggles is 1
+        for i in 0..set.len() {
+            let toggle_ind = self.get_var_index(&*format!("{}_toggle[{}]", x, i));
+            self.A.push((self.constraint_count, toggle_ind, Scalar::one().to_bytes()));
+        }
+        let one_ind = self.get_var_index("one");
+        self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
+        self.C.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
+
+        self.num_non_zero += set.len();
+        self.constraint_count += 1;
+
+        // prove that set[i] * toggle[i] == toggle[i] * x, for all i
+        // this is equivalent to toggle[i](set[i] - x) == 0 // TODO: check this fact when not tired
+        let secret_ind = self.get_var_index(x);
+        for i in 0..set.len() {
+            let toggle_ind = self.get_var_index(&*format!("{}_toggle[{}]", x, i));
+            let set_ind = self.get_var_index(set[i]);
+            self.A.push((self.constraint_count, toggle_ind, Scalar::one().to_bytes()));
+            self.B.push((self.constraint_count, set_ind, Scalar::one().to_bytes()));
+            self.B.push((self.constraint_count, secret_ind, (-Scalar::one()).to_bytes()));
+            self.num_non_zero += 2;
+            self.constraint_count += 1;
+        }
+    }
+
+    pub fn generate_witness_set_membership(&mut self, x: &str, x_val: Scalar, set: Vec<Scalar>) {
+        for i in 0..set.len() {
+            let toggle: Scalar = if x_val == set[i] { Scalar::one() } else { Scalar::zero() };
+            self.add_witness_var_assignment(&*format!("{}_toggle[{}]", x, i), toggle);
+        }
     }
 }
