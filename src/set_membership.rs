@@ -59,6 +59,7 @@ mod set_membership_tests {
     use curve25519_dalek::scalar::Scalar;
     use libspartan::{InputsAssignment, SNARK, SNARKGens};
     use merlin::Transcript;
+    use r1cs::num::range_step;
     use crate::set_membership::produce_set_membership_r1cs;
 
     fn set_membership_test_helper(secret: Scalar, set: Vec<Scalar>) {
@@ -145,5 +146,24 @@ mod set_membership_tests {
         set_membership_test_helper(Scalar::from(4235u32), set);
     }
 
-    // TODO: add tests for larger sets
+    #[test]
+    fn set_membership_medium_set_is_member_test() {
+        let mut set: Vec<Scalar> = Vec::new();
+        for i in range_step(0, 123, 11) {
+            set.push(Scalar::from(i as u32));
+        }
+        for value in set.iter() {
+            set_membership_test_helper(*value, set.clone());
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn set_membership_medium_set_is_not_member_test() {
+        let mut set: Vec<Scalar> = Vec::new();
+        for i in range_step(0, 123, 11) {
+            set.push(Scalar::from(i as u32));
+        }
+        set_membership_test_helper(Scalar::from(58u32), set.clone());
+    }
 }
