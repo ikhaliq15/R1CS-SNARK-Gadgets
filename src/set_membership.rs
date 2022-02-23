@@ -81,7 +81,7 @@ mod set_membership_tests {
         let (comm, decomm) = SNARK::encode(&inst, &gens);
 
         // produce a proof of satisfiability
-        let mut prover_transcript = Transcript::new(b"range_proof_test");
+        let mut prover_transcript = Transcript::new(b"set_membership_test");
         let proof = SNARK::prove(
             &inst,
             &decomm,
@@ -96,12 +96,12 @@ mod set_membership_tests {
         let custom_assignment_inputs = InputsAssignment::new(&custom_inputs).unwrap();
 
         // verify the proof of satisfiability
-        let mut verifier_transcript = Transcript::new(b"range_proof_test");
+        let mut verifier_transcript = Transcript::new(b"set_membership_test");
         assert!(
             proof
                 .verify(&comm, &custom_assignment_inputs, &mut verifier_transcript, &gens)
                 .is_ok(),
-            "testing range proof"
+            "testing set membership proof"
         );
     }
 
