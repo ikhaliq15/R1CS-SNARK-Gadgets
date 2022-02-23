@@ -2,10 +2,8 @@ extern crate curve25519_dalek;
 extern crate libspartan;
 extern crate merlin;
 
-use std::ops::Neg;
 use curve25519_dalek::scalar::Scalar;
 use libspartan::{InputsAssignment, Instance, VarsAssignment};
-use crate::bit_helpers::{get_bit, sum_last_n_bits};
 use crate::r1cs::*;
 
 /*  Generates a R1CS instance for a proof that X is the range
@@ -21,50 +19,20 @@ pub fn produce_range_r1cs(x: Scalar, a: Scalar, b: Scalar) -> (
     bool
 ) {
     /* Build a rank 1 constraint system so that x \in [A, B] */
-    let zero = Scalar::zero();
-    let one = Scalar::one();
-
     let mut r1cs: R1CS = R1CS::new(&Vec::from([("A", a), ("B", b)]));
+
+    // generate constraints for a range proof
     r1cs.new_range_constraint("A", "B", "x");
 
-    let mut vars: Vec<(usize, [u8; 32])> = Vec::new();
-    vars.push((r1cs.get_var_index("one"), one.to_bytes()));
-    vars.push((r1cs.get_var_index("A"), a.to_bytes()));
-    vars.push((r1cs.get_var_index("B"), b.to_bytes()));
-    vars.push((r1cs.get_var_index("x"), x.to_bytes()));
-
-    // this should detect overflow if bits in y is less than approx 250 bits
-    let y: Scalar = (a - x) * (x - b);
-    let y_is_neg: bool = sum_last_n_bits(y.to_bytes(), 8) != 0;
-    let y_bits = if y_is_neg { y.neg().to_bytes() } else { y.to_bytes() };
-    let bits_in_y: usize = 202;
-
-    vars.push((r1cs.get_var_index("y"), y.to_bytes()));
-
-    /* get the values of y_biti that are used in the range proof constraint. */
-    let mut carry: u8 = 1;
-    for i in 0..bits_in_y {
-        // determine what the i-th bit of y is in two's complement representation
-        let mut u_bit = get_bit(y_bits, i);
-        if y_is_neg {
-            u_bit = (1 - u_bit) + carry;
-            carry = if u_bit > 1 { 1 } else { 0 };
-            u_bit = u_bit & 1;
-        }
-        let b = if u_bit == 1 { one } else { zero };
-        vars.push((r1cs.get_var_index(&*format!("y_bit{:}", i)), b.to_bytes()));
-    }
+    // generate a witness to satisfy these constraints
+    r1cs.add_witness_var_assignment("x", x);
+    r1cs.generate_witness_range("A", "B", "x", a, b, x);
 
     // build our r1cs instance
     let (inst, num_cons, num_vars, num_inputs, num_non_zero_entries) = r1cs.build_instance();
 
-    // compute the final witness
-    let mut final_vars = vec![zero.to_bytes(); vars.len()];
-    for (i, v) in vars.iter() {
-        final_vars[*i] = *v;
-    }
-    let assignment_vars = VarsAssignment::new(&final_vars).unwrap();
-    let assignment_inputs = InputsAssignment::new(&vec![zero.to_bytes(); 0]).unwrap();
+    // build our witness
+    let (assignment_vars, assignment_inputs) = r1cs.build_witness();
 
     // check if the instance we created is satisfied by our witness
     let witness_satisfies_instance: bool = inst
