@@ -10,7 +10,6 @@ use crate::bit_helpers::{get_bit, get_pow_2, sum_last_n_bits};
 
 pub struct R1CS {
     constraint_count: usize,
-    num_non_zero: usize,
     variables: HashMap<String, usize>,
     witness_assignments: HashMap<String, Scalar>,
     A: Vec<(usize, usize, [u8; 32])>,
@@ -22,7 +21,6 @@ impl R1CS {
     pub fn new(inputs: &Vec<(&str, Scalar)>) -> R1CS {
         let mut r1cs = R1CS {
             constraint_count: 0,
-            num_non_zero: 0,
             variables: HashMap::new(),
             witness_assignments: HashMap::new(),
             A: Vec::new(),
@@ -49,7 +47,6 @@ impl R1CS {
         self.A.push((self.constraint_count, self.variables.len(), Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, self.variables.len(), Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 1;
         self.constraint_count += 1;
 
         // TODO: add input constraints so that input variables equal
@@ -107,7 +104,6 @@ impl R1CS {
         self.A.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, y_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, z_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 1;
         self.constraint_count += 1;
     }
 
@@ -124,7 +120,6 @@ impl R1CS {
         self.A.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, one_ind, y.to_bytes()));
         self.C.push((self.constraint_count, z_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 1;
         self.constraint_count += 1;
     }
 
@@ -143,7 +138,6 @@ impl R1CS {
         self.A.push((self.constraint_count, y_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, z_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 2;
         self.constraint_count += 1;
     }
 
@@ -162,7 +156,6 @@ impl R1CS {
         self.A.push((self.constraint_count, y_ind, (-Scalar::one()).to_bytes()));
         self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, z_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 2;
         self.constraint_count += 1;
     }
 
@@ -176,7 +169,6 @@ impl R1CS {
         self.A.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, one_ind, (-Scalar::one()).to_bytes()));
-        self.num_non_zero += 2;
         self.constraint_count += 1;
     }
 
@@ -187,7 +179,6 @@ impl R1CS {
         self.A.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, y_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 1;
         self.constraint_count += 1;
     }
 
@@ -197,7 +188,6 @@ impl R1CS {
         self.A.push((self.constraint_count, one_ind, y.to_bytes()));
         self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 1;
         self.constraint_count += 1;
     }
 
@@ -224,7 +214,6 @@ impl R1CS {
         self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
 
-        self.num_non_zero += max(N, 1);
         self.constraint_count += 1;
     }
 
@@ -264,7 +253,6 @@ impl R1CS {
         self.B.push((self.constraint_count, x_ind, Scalar::one().to_bytes()));
         self.B.push((self.constraint_count, b_ind, (-Scalar::one()).to_bytes()));
         self.C.push((self.constraint_count, y_ind, Scalar::one().to_bytes()));
-        self.num_non_zero += 2;
         self.constraint_count += 1;
 
         /*  verify that each y_i is a bit (\forall i, y_i \in \{0, 1\})
@@ -299,7 +287,6 @@ impl R1CS {
         self.B.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
         self.C.push((self.constraint_count, one_ind, Scalar::one().to_bytes()));
 
-        self.num_non_zero += set.len();
         self.constraint_count += 1;
 
         // prove that set[i] * toggle[i] == toggle[i] * x, for all i
@@ -311,7 +298,6 @@ impl R1CS {
             self.A.push((self.constraint_count, toggle_ind, Scalar::one().to_bytes()));
             self.B.push((self.constraint_count, set_ind, Scalar::one().to_bytes()));
             self.B.push((self.constraint_count, secret_ind, (-Scalar::one()).to_bytes()));
-            self.num_non_zero += 2;
             self.constraint_count += 1;
         }
     }
