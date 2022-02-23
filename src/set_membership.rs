@@ -108,7 +108,6 @@ mod set_membership_tests {
     #[test]
     #[should_panic]
     fn set_membership_empty_set_test() {
-        // TODO: is panicking for the wrong reason (probably to do with num_non_zero).
         set_membership_test_helper(Scalar::from(156u32), Vec::new());
     }
 

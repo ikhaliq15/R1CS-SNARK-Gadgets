@@ -2,7 +2,7 @@ extern crate curve25519_dalek;
 extern crate libspartan;
 extern crate merlin;
 
-use std::cmp::{max, min};
+use std::cmp::{max};
 use std::collections::HashMap;
 use curve25519_dalek::scalar::Scalar;
 use libspartan::{Assignment, InputsAssignment, Instance, VarsAssignment};
@@ -58,7 +58,8 @@ impl R1CS {
 
         let num_vars = self.variables.len();
         let num_inputs = 0;
-        let num_non_zero_entries = min(self.num_non_zero, num_vars.next_power_of_two() + 1);
+        let num_non_zero_entries = max(max(self.A.len(), self.B.len()), self.C.len());
+
         let inst = Instance::new(self.constraint_count, num_vars, num_inputs, &self.A, &self.B, &self.C).unwrap();
         (inst, self.constraint_count, num_vars, num_inputs, num_non_zero_entries)
     }
