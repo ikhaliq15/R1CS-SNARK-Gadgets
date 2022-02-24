@@ -1,6 +1,6 @@
 # R1CS Gadgets
 
-This repository contains R1CS gadgest I have built using [Spartan](https://github.com/microsoft/Spartan).
+This repository contains R1CS gadgest I have built using (a slightly modified version of) [Spartan](https://github.com/microsoft/Spartan).
 
 Currently, the two gadgets included are: 
 
