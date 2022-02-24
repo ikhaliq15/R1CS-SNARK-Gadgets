@@ -239,9 +239,12 @@ impl R1CS {
         }
     }
 
-    /* Add constraints to verify X \in [A, B] where X, A, and B are 100 bit numbers. */
-    pub fn new_range_constraint(&mut self, a: &str, b: &str, x: &str) {
-        let helper_var: &str = &*format!("{}_{}_{}_range_helper", x, a, b);
+    /* Add constraints to verify X \in [A, B] where X, A, and B are N bit numbers. */
+    pub fn new_range_constraint(&mut self, a: &str, b: &str, x: &str, N: usize) {
+        assert!(0 < N && N < 126);
+
+        let helper_var: &str = &*format!("{}_{}_{}_{}_range_helper", x, a, b, N);
+        let helper_size = 2 * N + 2;
 
         /* constraint so that y = (a - x) * (x - b) */
         let a_ind = self.get_var_index(a);
@@ -255,20 +258,20 @@ impl R1CS {
         self.C.push((self.constraint_count, y_ind, Scalar::one().to_bytes()));
         self.constraint_count += 1;
 
-        /*  verify that each y_i is a bit (\forall i, y_i \in \{0, 1\})
-            also verify that -2^{n-1} * y_{n-1} + \sum_{i=0}^{n-2} 2^i * y_i = y
-            essentially, verify that the bits y_i form two's complement of y */
-        self.new_twos_complement_decomposition_constraint(helper_var, 202);
+        /* gets bits of helper variable */
+        self.new_twos_complement_decomposition_constraint(helper_var, helper_size);
 
         // verify y > 0 (if y_i form two's complement of y, then just check MSB == 0)
-        self.new_equality_scalar_constraint(&*format!("{}_bit{}", helper_var, 201), Scalar::zero());
+        self.new_equality_scalar_constraint(&*format!("{}_bit{}", helper_var, helper_size - 1), Scalar::zero());
     }
 
-    pub fn generate_witness_range(&mut self, a: &str, b: &str, x: &str, a_val: Scalar, b_val: Scalar, x_val: Scalar) {
-        let helper_var: &str = &*format!("{}_{}_{}_range_helper", x, a, b);
+    pub fn generate_witness_range(&mut self, a: &str, b: &str, x: &str, a_val: Scalar, b_val: Scalar, x_val: Scalar, N: usize) {
+        assert!(0 < N && N < 126);
+
+        let helper_var: &str = &*format!("{}_{}_{}_{}_range_helper", x, a, b, N);
         let helper_var_val: Scalar = (a_val - x_val) * (x_val - b_val);
         self.add_witness_var_assignment(&*helper_var, helper_var_val);
-        self.generate_witness_twos_complement_decomposition(helper_var, helper_var_val, 202);
+        self.generate_witness_twos_complement_decomposition(helper_var, helper_var_val, 2 * N + 2);
     }
 
     /* Add constraints to verify X \in SET where X, A, and B are 100 bit numbers. */

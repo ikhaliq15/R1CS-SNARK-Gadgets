@@ -30,6 +30,7 @@ fn main() {
         get_pow_2(18),
         get_pow_2(16),
         get_pow_2(25),
+        100
     );
 
     // produce public parameters
