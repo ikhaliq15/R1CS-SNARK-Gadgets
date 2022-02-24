@@ -62,7 +62,7 @@ mod set_membership_tests {
     use r1cs::num::range_step;
     use crate::set_membership::produce_set_membership_r1cs;
 
-    fn set_membership_test_helper(secret: Scalar, set: Vec<Scalar>) {
+    fn set_membership_test_helper(secret: Scalar, set: Vec<Scalar>, expected_to_verify: bool) {
         // produce a set_membership proof
         let (
             num_cons,
@@ -98,7 +98,8 @@ mod set_membership_tests {
 
         // verify the proof of satisfiability
         let mut verifier_transcript = Transcript::new(b"set_membership_test");
-        assert!(
+        assert_eq!(
+            expected_to_verify,
             proof
                 .verify(&comm, &custom_assignment_inputs, &mut verifier_transcript, &gens)
                 .is_ok(),
@@ -107,14 +108,13 @@ mod set_membership_tests {
     }
 
     #[test]
-    #[should_panic]
     fn set_membership_empty_set_test() {
-        set_membership_test_helper(Scalar::from(156u32), Vec::new());
+        set_membership_test_helper(Scalar::from(156u32), Vec::new(), false);
     }
 
     #[test]
     fn set_membership_singleton_set_is_member_test() {
-        set_membership_test_helper(Scalar::from(1323u32), Vec::from([Scalar::from(1323u32)]));
+        set_membership_test_helper(Scalar::from(1323u32), Vec::from([Scalar::from(1323u32)]), true);
     }
 
     #[test]
@@ -128,12 +128,11 @@ mod set_membership_tests {
             Scalar::from(4892332u32),
         ]);
         for value in set.iter() {
-            set_membership_test_helper(*value, set.clone());
+            set_membership_test_helper(*value, set.clone(), true);
         }
     }
 
     #[test]
-    #[should_panic]
     fn set_membership_small_set_is_not_member_test() {
         let set: Vec<Scalar> = Vec::from([
             Scalar::from(1323u32),
@@ -143,7 +142,8 @@ mod set_membership_tests {
             Scalar::from(13532u32),
             Scalar::from(4892332u32),
         ]);
-        set_membership_test_helper(Scalar::from(4235u32), set);
+        set_membership_test_helper(Scalar::one(), set.clone(), false);
+        set_membership_test_helper(Scalar::from(4235u32), set.clone(), false);
     }
 
     #[test]
@@ -153,17 +153,19 @@ mod set_membership_tests {
             set.push(Scalar::from(i as u32));
         }
         for value in set.iter() {
-            set_membership_test_helper(*value, set.clone());
+            set_membership_test_helper(*value, set.clone(), true);
         }
     }
 
     #[test]
-    #[should_panic]
     fn set_membership_medium_set_is_not_member_test() {
         let mut set: Vec<Scalar> = Vec::new();
         for i in range_step(0, 123, 11) {
             set.push(Scalar::from(i as u32));
         }
-        set_membership_test_helper(Scalar::from(58u32), set.clone());
+        set_membership_test_helper(Scalar::from(58u32), set.clone(), false);
+        set_membership_test_helper(Scalar::from(100u32), set.clone(), false);
+        set_membership_test_helper(Scalar::from(5u32), set.clone(), false);
+        set_membership_test_helper(Scalar::from(21u32), set.clone(), false);
     }
 }

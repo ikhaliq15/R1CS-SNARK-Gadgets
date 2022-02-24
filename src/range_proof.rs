@@ -58,7 +58,7 @@ mod range_proof_tests {
     use merlin::Transcript;
     use crate::{get_pow_2, produce_range_r1cs};
 
-    fn range_proof_test_helper(x: Scalar, a: Scalar, b: Scalar) {
+    fn range_proof_test_helper(x: Scalar, a: Scalar, b: Scalar, expected_to_verify: bool) {
         // produce a range proof
         let (
             num_cons,
@@ -94,7 +94,8 @@ mod range_proof_tests {
 
         // verify the proof of satisfiability
         let mut verifier_transcript = Transcript::new(b"range_proof_test");
-        assert!(
+        assert_eq!(
+            expected_to_verify,
             proof
                 .verify(&comm, &custom_assignment_inputs, &mut verifier_transcript, &gens)
                 .is_ok(),
@@ -106,101 +107,41 @@ mod range_proof_tests {
     fn range_proof_small_in_range_test() {
         let a: Scalar = Scalar::from(2u32);
         let b: Scalar = Scalar::from(5u32);
-        range_proof_test_helper(Scalar::from(2u32), a, b);
-        range_proof_test_helper(Scalar::from(3u32), a, b);
-        range_proof_test_helper(Scalar::from(4u32), a, b);
-        range_proof_test_helper(Scalar::from(4u32), a, b);
+        range_proof_test_helper(Scalar::from(2u32), a, b, true);
+        range_proof_test_helper(Scalar::from(3u32), a, b, true);
+        range_proof_test_helper(Scalar::from(4u32), a, b, true);
+        range_proof_test_helper(Scalar::from(4u32), a, b, true);
     }
 
     #[test]
-    #[should_panic]
-    fn range_proof_small_out_of_range_1_test() {
+    fn range_proof_small_out_of_range_test() {
         let a: Scalar = Scalar::from(2u32);
         let b: Scalar = Scalar::from(5u32);
-        range_proof_test_helper(-Scalar::one(), a, b);
-    }
-
-    #[test]
-    #[should_panic]
-    fn range_proof_small_out_of_range_2_test() {
-        let a: Scalar = Scalar::from(2u32);
-        let b: Scalar = Scalar::from(5u32);
-        range_proof_test_helper(Scalar::zero(), a, b);
-    }
-
-    #[test]
-    #[should_panic]
-    fn range_proof_small_out_of_range_3_test() {
-        let a: Scalar = Scalar::from(2u32);
-        let b: Scalar = Scalar::from(5u32);
-        range_proof_test_helper(Scalar::one(), a, b);
-    }
-
-
-    #[test]
-    #[should_panic]
-    fn range_proof_small_out_of_range_4_test() {
-        let a: Scalar = Scalar::from(2u32);
-        let b: Scalar = Scalar::from(5u32);
-        range_proof_test_helper(Scalar::from(6u32), a, b);
-    }
-
-    #[test]
-    #[should_panic]
-    fn range_proof_small_out_of_range_5_test() {
-        let a: Scalar = Scalar::from(2u32);
-        let b: Scalar = Scalar::from(5u32);
-        range_proof_test_helper(Scalar::from(7u32), a, b);
+        range_proof_test_helper(-Scalar::one(), a, b, false);
+        range_proof_test_helper(Scalar::zero(), a, b, false);
+        range_proof_test_helper(Scalar::one(), a, b, false);
+        range_proof_test_helper(Scalar::from(6u32), a, b, false);
+        range_proof_test_helper(Scalar::from(7u32), a, b, false);
     }
 
     #[test]
     fn range_proof_large_in_range_test() {
         let a: Scalar = get_pow_2(88);
         let b: Scalar = get_pow_2(97);
-        range_proof_test_helper(get_pow_2(88), a, b);
-        range_proof_test_helper(get_pow_2(97), a, b);
-        range_proof_test_helper(get_pow_2(88) + Scalar::one(), a, b);
-        range_proof_test_helper(get_pow_2(92), a, b);
+        range_proof_test_helper(get_pow_2(88), a, b, true);
+        range_proof_test_helper(get_pow_2(97), a, b, true);
+        range_proof_test_helper(get_pow_2(88) + Scalar::one(), a, b, true);
+        range_proof_test_helper(get_pow_2(92), a, b, true);
     }
 
     #[test]
-    #[should_panic]
-    fn range_proof_large_out_of_range_1_test() {
+    fn range_proof_large_out_of_range_test() {
         let a: Scalar = get_pow_2(88);
         let b: Scalar = get_pow_2(97);
-        range_proof_test_helper(Scalar::one(), a, b);
-    }
-
-    #[test]
-    #[should_panic]
-    fn range_proof_large_out_of_range_2_test() {
-        let a: Scalar = get_pow_2(88);
-        let b: Scalar = get_pow_2(97);
-        range_proof_test_helper(get_pow_2(97) + Scalar::one(), a, b);
-    }
-
-    #[test]
-    #[should_panic]
-    fn range_proof_large_out_of_range_3_test() {
-        let a: Scalar = get_pow_2(88);
-        let b: Scalar = get_pow_2(97);
-        range_proof_test_helper(get_pow_2(88) + -Scalar::one(), a, b);
-    }
-
-
-    #[test]
-    #[should_panic]
-    fn range_proof_large_out_of_range_4_test() {
-        let a: Scalar = get_pow_2(88);
-        let b: Scalar = get_pow_2(97);
-        range_proof_test_helper(get_pow_2(98), a, b);
-    }
-
-    #[test]
-    #[should_panic]
-    fn range_proof_large_out_of_range_5_test() {
-        let a: Scalar = get_pow_2(88);
-        let b: Scalar = get_pow_2(97);
-        range_proof_test_helper(get_pow_2(65), a, b);
+        range_proof_test_helper(Scalar::one(), a, b, false);
+        range_proof_test_helper(get_pow_2(97) + Scalar::one(), a, b, false);
+        range_proof_test_helper(get_pow_2(88) + -Scalar::one(), a, b, false);
+        range_proof_test_helper(get_pow_2(98), a, b, false);
+        range_proof_test_helper(get_pow_2(65), a, b, false);
     }
 }
