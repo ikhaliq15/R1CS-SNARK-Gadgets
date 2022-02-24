@@ -1,4 +1,4 @@
-# R1CS-Range-Proof
+# R1CS Gadgets
 
 This repository contains R1CS gadgest I have built using [Spartan](https://github.com/microsoft/Spartan).
 
